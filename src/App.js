@@ -5,6 +5,7 @@ import {
   View,
   Text,
   SafeAreaView,
+  FlatList,
   StatusBar,
   StyleSheet,
   TouchableOpacity,
@@ -19,20 +20,30 @@ export default function App() {
       setRepositories(data);
     }
     loadRepositories();
-  }, [repositories]);
+  }, []);
 
   async function handleLikeRepository(id) {
-    console.log('cheguei')
-    await api.post(`/repositories/${id}/like`)
+    const { data: likedRepository } = await api.post(`/repositories/${id}/like`)
+    const repositoriesUpdated = repositories.map(repository => {
+      if (repository.id === id) {
+        return likedRepository;
+      } else {
+        return repository;
+      }
+    });
+
+    setRepositories(repositoriesUpdated);
   }
 
   return (
     <>
       <StatusBar barStyle="light-content" backgroundColor="#7159c1" />
       <SafeAreaView style={styles.container}>
-        {
-          repositories.map((repository) => (
-            <View key={repository.id} style={styles.repositoryContainer}>
+        <FlatList
+          data={repositories}
+          keyExtractor={(repository) => repository.id}
+          renderItem={({ item: repository }) => (
+            <View style={styles.repositoryContainer}>
               <Text style={styles.repository}>{repository.title}</Text>
 
               <View style={styles.techsContainer}>
@@ -62,8 +73,8 @@ export default function App() {
                 <Text style={styles.buttonText}>Curtir</Text>
               </TouchableOpacity>
             </View>
-          ))
-        }
+          )}
+        />
       </SafeAreaView>
     </>
   );
